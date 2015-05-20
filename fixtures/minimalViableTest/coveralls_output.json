@@ -1,0 +1,5 @@
+{
+  "name":     "pre.swift",
+  "source":   "func fib(num: Int) -> Int{\n    if(num == 0){\n        return 0;\n    }\n    if(num == 1){\n        return 1;\n    }\n    return fib(num - 1) + fib(num - 2);\n}\n",
+  "coverage": [null, 1, 1, 1, 1, 1, 1, 1, null, null]
+}

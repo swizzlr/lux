@@ -1,0 +1,13 @@
+machine:
+  xcode:
+    version: "6.3.1"
+
+dependencies:
+  cache_directories:
+    - "Carthage"
+  override:
+    - ./script/bootstrap
+
+test:
+  override:
+    - ./script/cibuild
