@@ -1,3 +1,5 @@
+// This file is an awful huge mess and I am really sorry
+
 public let MagicDelimiter = ":co.swizzlr.lux:"
 private let TheMagicInstrumentationCode = "println(\"\(MagicDelimiter)\"+__FILE__+\"\(MagicDelimiter)\"+String(__LINE__));"
 
@@ -12,7 +14,7 @@ private func insertInstrumentationCodeAtIndex(index: Int)(inString string: Strin
 
 // Side-effect laden function. Will crash if file doesn't exist.
 // Returns instrumentation map for the given file
-public func instrumentFileAtPath(path: String) -> InstrumentationMap {
+public func instrumentFileAtPath(path: String) -> FileInstrumentationMap {
     let file = File(path: path)! // If you crashed here, you gave a bad path.
     let (newContents, instrumentationMap) = instrumentString(file.contents)
 
@@ -22,6 +24,19 @@ public func instrumentFileAtPath(path: String) -> InstrumentationMap {
     newContents.writeToFile(file.path!, atomically: true, encoding: NSUTF8StringEncoding, error: &error)
     assert(error == nil, "Error writing to file, error follows:\n\n\(error!)") // Todo: Handle possible errors correctly https://github.com/swizzlr/lux/issues/24
     return instrumentationMap
+}
+
+public enum ReducedInstrumentationState {
+    case Instrumented
+    case NotInstrumented
+    public static func fromInstrumentableState(state: InstrumentableLine.InstrumentableState) -> ReducedInstrumentationState {
+        switch state {
+        case .Instrumentable, .Instrumented:
+            return .Instrumented
+        case .NotInstrumentable:
+            return .NotInstrumented
+        }
+    }
 }
 
 public struct InstrumentableLine {
@@ -55,39 +70,11 @@ public struct InstrumentableLine {
     let state: InstrumentableState
 }
 
-public typealias InstrumentationMap = Dictionary<String.Line, InstrumentableLine.InstrumentableState>
-//Line Number : InstrumentableState with empty associated values
+public typealias FileInstrumentationMap = Array<(String.Line, ReducedInstrumentationState)>
+/// Line Number : InstrumentableState with empty associated values
 public typealias ReducedInstrumentationMap = Dictionary<Int, InstrumentableLine.InstrumentableState>
 
-public func serializeInstrumentationMap(map: InstrumentationMap) -> NSData {
-    let dict = NSMutableDictionary()
-    for (key, value) in map {
-        dict[key.lineNumber as NSNumber] = value.description
-    }
-    let mutData = NSMutableData()
-    let archiver = NSKeyedArchiver(forWritingWithMutableData: mutData)
-    archiver.outputFormat = .XMLFormat_v1_0
-    archiver.encodeRootObject(dict)
-    archiver.finishEncoding()
-    return NSData(data: mutData)
-}
-
-public func deserializeInstrumentationMapFromData(data: NSData) -> ReducedInstrumentationMap? {
-    let unarchiver = NSKeyedUnarchiver(forReadingWithData: data)
-    let dict: AnyObject? = unarchiver.decodeObject()
-    unarchiver.finishDecoding()
-    return dict.flatMap {
-        return $0 as? Dictionary<Int, String>
-    }.map {
-        var newDict = ReducedInstrumentationMap()
-        for (key, value) in $0 {
-            newDict[key] = InstrumentableLine.InstrumentableState.fromDescription(value)
-        }
-        return newDict
-    }
-}
-
-public func instrumentString(string: String) -> (String, InstrumentationMap) {
+public func instrumentString(string: String) -> (String, FileInstrumentationMap) {
     let file = File(contents: string)
     let structure = Structure.decode(JSON.parse(Request.EditorOpen(file).send())).value! // TODO: isn't there some nicer way of writing this?
 
@@ -156,6 +143,8 @@ public func instrumentString(string: String) -> (String, InstrumentationMap) {
         }
     }
     let x = 😈.map(instrumentAnInstrumentableLine)
+
+    // Convert an array of Instrumented Lines into a string
     let instrumentedString = x.reduce("", combine: { (accum, instrumentableLine) -> String in
         switch instrumentableLine.state {
         case .Instrumented(let line):
@@ -164,9 +153,10 @@ public func instrumentString(string: String) -> (String, InstrumentationMap) {
             return accum + instrumentableLine.line.lineContent + "\n"
         }
     })
-    let instrumentationMap = x.reduce(InstrumentationMap(), combine: { (accum, line) -> InstrumentationMap in
+    // Convert an array of Instrumented Lines into a FileInstrumentationMap
+    let instrumentationMap = x.reduce(FileInstrumentationMap(), combine: { (accum, line) -> FileInstrumentationMap in
         var ret = accum
-        ret.updateValue(line.state, forKey: line.line)
+        ret.append((line.line, ReducedInstrumentationState.fromInstrumentableState(line.state)))
         return ret
     })
     return (instrumentedString, instrumentationMap)

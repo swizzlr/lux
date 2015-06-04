@@ -10,7 +10,7 @@ private let o = executeAndParseTestCommand("/Users/swizzlr/github/public/lux/fix
 println(o!.value!)
 
 // Future work
-private func reportForInstrumentationMap(map: InstrumentationMap, withExecutedLines executedLines: CountedSet<LineIdentifier>) -> CoverageReport {
+private func reportForInstrumentationMap(map: FileInstrumentationMap, withExecutedLines executedLines: CountedSet<LineIdentifier>) -> CoverageReport {
     return CoverageReport()
 }
 

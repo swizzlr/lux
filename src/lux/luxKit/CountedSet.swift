@@ -12,4 +12,18 @@ public struct CountedSet<T : Hashable> {
             countIndex[member] = 1
         }
     }
+    public subscript(elem: T) -> (element: T, count: Int)? {
+        return underlyingSet.indexOf(elem)
+            .map { underlyingSet[$0] }
+            .map { (element: $0, count: countIndex[$0]!) }
+    }
+}
+
+extension CountedSet: ArrayLiteralConvertible {
+    typealias Element = T
+    public init(arrayLiteral elements: Element...) {
+        for elem in elements {
+            self.insert(elem)
+        }
+    }
 }

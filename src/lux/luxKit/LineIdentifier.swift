@@ -1,3 +1,4 @@
+/// A globally unique identifier for a line
 public struct LineIdentifier {
     public let filename: String
     public let lineNumber: Int
@@ -13,6 +14,7 @@ extension LineIdentifier: Hashable {
         }
     }
 }
+extension LineIdentifier: Equatable {}
 public func ==(lhs: LineIdentifier, rhs: LineIdentifier) -> Bool {
     return (lhs.filename == rhs.filename) && (lhs.lineNumber == rhs.lineNumber)
 }

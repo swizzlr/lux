@@ -5,6 +5,13 @@ extension String {
         let rangeOfLineInContainingString: NSRange
         let containingString: String
 
+        public static func dummyLineWithLineNumber(lineNumber: Int) -> Line {
+            return Line(lineNumber: lineNumber,
+                lineContent: "",
+                rangeOfLineInContainingString: NSRange(location: 0, length: 0),
+                containingString: "")
+        }
+
         public var hashValue: Int {
             get {
                 return lineContent.hashValue & lineNumber.hashValue & containingString.hashValue & rangeOfLineInContainingString.location & rangeOfLineInContainingString.length
