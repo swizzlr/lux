@@ -31,8 +31,14 @@ public func reportCoverageForFilename(filename: String)(instrumentationMap: File
 
 private func generateLineReportsForFileInstrumentationMap(imap: FileInstrumentationMap, fileName: String, linesExecuted: CountedSet<LineIdentifier>) -> Array<LineReport> {
     return imap.map { (line, state) in
-        let lineIdentifier = LineIdentifier(filename: fileName, lineNumber: line.lineNumber)
-        return linesExecuted[lineIdentifier].map { LineReport.Instrumented(hitCount: $0.count) } ?? .NotInstrumented
+        switch state {
+        case .NotInstrumented:
+            return LineReport.NotInstrumented
+        case .Instrumented:
+            let lineIdentifier = LineIdentifier(filename: fileName, lineNumber: line.lineNumber)
+            return linesExecuted[lineIdentifier].map { LineReport.Instrumented(hitCount: $0.count) } ?? LineReport.Instrumented(hitCount: 0)
+
+        }
     }
 }
 
