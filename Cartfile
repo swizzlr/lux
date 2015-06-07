@@ -1,3 +1,5 @@
 github "thoughtbot/Argo"
 github "jpsim/SourceKitten"
 github "Carthage/ReactiveTask"
+github "Quick/Quick"
+github "Quick/Nimble"

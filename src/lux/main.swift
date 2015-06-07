@@ -9,9 +9,6 @@ private let o = executeAndParseTestCommand("/Users/swizzlr/github/public/lux/fix
 
 println(o!.value!)
 
-// Future work
-private func reportForInstrumentationMap(map: InstrumentationMap, withExecutedLines executedLines: CountedSet<LineIdentifier>) -> CoverageReport {
-    return CoverageReport()
-}
-
+let y = reportCoverageForFilename("pre.swift")(instrumentationMap: iMap)(linesExecuted: o!.value!)
+println(y)
 
